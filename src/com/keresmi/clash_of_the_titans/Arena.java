@@ -7,6 +7,7 @@ import com.keresmi.clash_of_the_titans.models.Warrior;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Arena {
@@ -20,6 +21,9 @@ public class Arena {
     private String firstTeamName;
     private String secondTeamName;
 
+    private String firstTeam;
+    private String secondTeam;
+
     public Arena() {
         this.firstTeamWarriors = new ArrayList<>();
         this.secondTeamWarriors = new ArrayList<>();
@@ -31,9 +35,14 @@ public class Arena {
         chooseFirstTeamName();
         System.out.println();
         chooseSecondTeamName();
-        chooseTeamWarriors(firstTeamWarriors, firstTeamName, firstTeamBudget);
+        pickStarter();
+
+        chooseTeamWarriors(firstTeamWarriors, firstTeam, firstTeamBudget);
         System.out.println();
-        chooseTeamWarriors(secondTeamWarriors, secondTeamName, secondTeamBudget);
+        chooseTeamWarriors(secondTeamWarriors, secondTeam, secondTeamBudget);
+        System.out.println();
+        System.out.println(firstTeam + " starts the game first.");
+        playGame();
     }
 
     private void chooseFirstTeamName() {
@@ -49,10 +58,6 @@ public class Arena {
     }
 
     private void chooseTeamWarriors(List<Warrior> warriors, String teamName, int teamBudget) {
-        Footman footman = null;
-        Knight knight = null;
-        Palladin palladin = null;
-
         while (teamBudget >= 10000) {
             System.out.println("Choose warrior for team " + teamName);
             System.out.println("Your budget is " + teamBudget);
@@ -65,8 +70,7 @@ public class Arena {
 
             switch (choice) {
                 case WarriorType.FOOTMAN:
-                    if (footman == null)
-                        footman = new Footman("Footman");
+                    Footman footman = new Footman("Footman");
 
                     if (teamBudget >= footman.getCost()) {
                         teamBudget -= footman.getCost();
@@ -79,8 +83,7 @@ public class Arena {
                     break;
 
                 case WarriorType.KNIGHT:
-                    if (knight == null)
-                        knight = new Knight("Knight");
+                    Knight knight = new Knight("Knight");
 
                     if (teamBudget >= knight.getCost()) {
                         teamBudget -= knight.getCost();
@@ -93,8 +96,7 @@ public class Arena {
                     break;
 
                 case WarriorType.PALLADIN:
-                    if (palladin == null)
-                        palladin = new Palladin("Palladin");
+                    Palladin palladin = new Palladin("Palladin");
 
                     if (teamBudget >= palladin.getCost()) {
                         teamBudget -= palladin.getCost();
@@ -124,5 +126,74 @@ public class Arena {
         for (Warrior warrior : warriors) {
             System.out.println(warrior.toString());
         }
+    }
+
+    private void pickStarter() {
+        Random random = new Random();
+        int playerNumber = random.nextInt(2);
+        if (playerNumber == 0) {
+            firstTeam = firstTeamName;
+            secondTeam = secondTeamName;
+        } else {
+            firstTeam = secondTeamName;
+            secondTeam = firstTeamName;
+        }
+    }
+
+    private void playGame() {
+        while (!firstTeamWarriors.isEmpty() && !secondTeamWarriors.isEmpty()) {
+            System.out.println("Team " + firstTeam + " turn.");
+            attack(firstTeamWarriors, secondTeamWarriors);
+
+            if (secondTeamWarriors.isEmpty())
+                break;
+
+            System.out.println("Team " + secondTeam + " turn.");
+            attack(secondTeamWarriors, firstTeamWarriors);
+        }
+
+        String winner = determineWinner();
+        System.out.println("Team " + winner + " win the game!");
+        System.out.println("Congratulations!");
+    }
+
+    private void attack(List<Warrior> attackers, List<Warrior> defenders) {
+        Scanner scanner = new Scanner(System.in);
+        for (Warrior warrior : attackers) {
+            if (defenders.isEmpty())
+                break;
+
+            System.out.println("Attacker: " + warrior.toString());
+            System.out.println();
+
+            System.out.println("Choose enemy: ");
+            System.out.println();
+            showTeam(defenders);
+            int defenderIndex = scanner.nextInt();
+            Warrior defender = defenders.get(defenderIndex);
+
+            int damage = warrior.attack();
+            int defenderHealth = defender.defend(damage);
+
+            System.out.println("Damage: " + damage);
+
+            if (defenderHealth <= 0)
+                defenders.remove(defenderIndex);
+        }
+    }
+
+    private void showTeam(List<Warrior> warriors) {
+        for (int i = 0; i < warriors.size(); i++) {
+            System.out.println(i + " -> " + warriors.get(i).toString());
+        }
+    }
+
+    private String determineWinner() {
+        if (firstTeamWarriors.isEmpty())
+            return secondTeam;
+        else if (secondTeamWarriors.isEmpty())
+            return firstTeam;
+
+        return "";
     }
 }

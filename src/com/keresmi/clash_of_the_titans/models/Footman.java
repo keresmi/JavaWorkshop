@@ -42,6 +42,12 @@ public class Footman extends Person implements Warrior {
     }
 
     @Override
+    public int defend(int damage) {
+        health -= damage;
+        return health;
+    }
+
+    @Override
     public String toString() {
         return "Footman{" +
                 "health=" + health +
